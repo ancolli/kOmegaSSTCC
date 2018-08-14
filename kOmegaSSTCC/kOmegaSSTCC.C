@@ -472,19 +472,19 @@ void kOmegaSSTCC<BasicTurbulenceModel>::correct()
     (
         fvc::div(fvc::absolute(this->phi(), U))()()
     );
-
+//
     tmp<volTensorField> tgradU = fvc::grad(U);
-    volScalarField S2(2*magSqr(symm(tgradU())));
+    tmp<volTensorField> tSkew = skew(tgradU()); // tmp<volTensorField> tSkew = skew(fvc::grad(U)); 
+    tmp<volSymmTensorField> tSymm = symm(tgradU());  // tmp<volSymmTensorField> tSymm = symm(fvc::grad(U));
+    volScalarField S2(2*magSqr(tSymm()));         //volScalarField S2(2*magSqr(symm(tgradU())));
+//
     volScalarField::Internal GbyNu(dev(twoSymm(tgradU()())) && tgradU()());
     volScalarField::Internal G(this->GName(), nut()*GbyNu);
     tgradU.clear();
 
-
 ///////////////// curvature correction
 
 // Compute rStar
-    tmp<volTensorField> tSkew = skew(fvc::grad(U)); 
-    tmp<volSymmTensorField> tSymm = symm(fvc::grad(U));
     volScalarField symInnerProduct(2.0*tSymm() && tSymm()); 
     volScalarField asymInnerProduct
     (
@@ -495,9 +495,8 @@ void kOmegaSSTCC<BasicTurbulenceModel>::correct()
     (
         atan(dimensionedScalar("4",dimensionSet(0,0,2,0,0),1.0e-02)*asymInnerProduct)*2.0/(constant::mathematical::pi)*(asymInnerProduct-symInnerProduct)+symInnerProduct
     );
-    volScalarField rStar(sqrt(symInnerProduct/w));
-
-
+    volScalarField rStar(sqrt(symInnerProduct/max(w, dimensionedScalar("minw", w.dimensions(), SMALL)))); //avoiding dividing by zero    volScalarField rStar(sqrt(symInnerProduct/w));
+     
     // Compute rTilda 
     volScalarField D(sqrt(max(symInnerProduct, 0.09*omega_*omega_)));
     tmp<volSymmTensorField> divS =
@@ -513,6 +512,7 @@ void kOmegaSSTCC<BasicTurbulenceModel>::correct()
     divS.clear();
     tSkew.clear();
     tSymm.clear();
+    
     volScalarField w2
     (
         atan(dimensionedScalar("1",dimensionSet(0,0,2,0,0),1.0e-2)*asymInnerProduct)*2.0/(constant::mathematical::pi)*(sqrt(asymInnerProduct)-D)+D //T
