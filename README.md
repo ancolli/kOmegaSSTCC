@@ -5,3 +5,5 @@ modelling was re-written and now is template based. It means that there is only 
 formulation of turbulence model for both incompressible and compressible flow.
 I have tested it in OpenFOAM 5.
 This repository code is not part of the official OpenFOAM distribution.
+
+The code was successfully implemented here: International Journal of Heat and Mass Transfer 137 (2019) 835-846 (https://www.sciencedirect.com/science/article/pii/S0017931019304508) doi: 10.1016/j.ijheatmasstransfer.2019.03.152
